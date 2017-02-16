@@ -1,0 +1,47 @@
+
+ node type
+    text selection
+    user input text
+    a hyper link
+
+ node props
+    color, labelbl.ocks.org/rkirsling/5001347
+    node size: text length + number of links
+
+select a node, highlight nodes with same text, highlight nodes with same range. ()
+
+node with more links has brigher color/or bigger size
+
+select a node,
+
+click to select a relation
+
+http://bl.ocks.org/rkirsling/5001347
+
+drag two node to create relation
+
+relation
+  cause effect (arrow)
+
+  part and whole (hull)  hull color has same border as as whole node color, invisible line
+http://bl.ocks.org/donaldh/2920551
+
+  associate (weak force, dash line)
+
+  force weight by distance of node and type(part-whole strongest , associate is the weakest)
+
+
+  expand collaspsable
+  http://bl.ocks.org/GerHobbelt/3071239
+
+  curvy link 
+  http://www.d3noob.org/2013/03/d3js-force-directed-graph-example-basic.html
+ 
+ understsanding d3.js force layout
+ http://jsdatav.is/visuals.html?id=11550728
+
+AN A TO Z OF EXTRA FEATURES FOR THE D3 FORCE LAYOUT
+ http://www.coppelia.io/2014/07/an-a-to-z-of-extra-features-for-the-d3-force-layout/
+
+More Networks in the Humanities or Did books have DNA?
+ https://dhs.stanford.edu/visualization/more-networks/
