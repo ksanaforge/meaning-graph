@@ -1,0 +1,136 @@
+<!-- c:\2016\meaning-graph\examples\02\index.html -->
+<html><head><meta charset='utf-8'><title>ForceLayout02</title><style>
+   .node {fill: #ccc; stroke: #00f; stroke-width: 1px;}
+   .link {stroke: #700; stroke-width: 1px;}
+    text {font: 10px sans-serif;
+          text-shadow: 2px 2px 0 #fdd, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; }
+</style></head><body><script src='..\..\d3.min.js'></script><script>
+var body = d3.select('body'),
+    title = body.append('center').append('h2')
+	.text('A Possible Complex Graph');
+	
+// Define the dimensions of the visualization. We're using
+// a size that's convenient for displaying
+var w = 500, h = 500;
+
+// Here's the code begins. We start off by creating an SVG
+// container to hold the visualization. We only need to specify
+// the dimensions for this container.
+var svg = body.append('svg')
+    .attr('width', w).attr('height', h);
+
+// Define 10 links among 10 nodes as a graph to visualize.
+var links =  [  { id: 'a', "target": 1, "source": 0 },
+                { id: 'b', "target": 2, "source": 0 },
+                { id: 'c', "target": 3, "source": 0 },
+                { id: 'd', "target": 4, "source": 0 },
+                { id: 'e', "target": 5, "source": 0 },
+                { id: 'f', "target": 6, "source": 1 },
+                { id: 'g', "target": 7, "source": 1 },
+                { id: 'h', "target": 1, "source": 2 },
+                { id: 'i', "target": 8, "source": 2 },
+                { id: 'j', "target": 9, "source": 3 }
+            ];
+
+// extract 10 nodes from 10 links.
+var nodes = {};
+    links.forEach(function(d){
+      d.target=nodes[d.target]||(nodes[d.target]={id:d.target});
+      d.source=nodes[d.source]||(nodes[d.source]={id:d.source});
+    });
+    nodes = d3.values(nodes);
+
+// Create a force layout object and define its dimensions of
+// the visualization and the arrays of nodes and links.
+var force = d3.layout.force().size([w, h])
+    .nodes(nodes).links(links);
+
+// There's one more property of the layout we need to define,
+// its `linkDistance`. That's generally a configurable value and,
+// for a simple example, we'd normally leave it at its default.
+// Unfortunately, the default value results in a visualization
+// that's not especially clear. This parameter defines the
+// distance (normally in pixels) that we'd like to have between
+// nodes that are connected. (It is, thus, the length we'd
+// like our links to have.)
+    force.linkDistance(w/9);
+
+// Next we'll add the nodes and links to the visualization.
+// Adding the nodes _after_ the links, we ensure that nodes
+// appear on top of links.
+// The links are pretty simple. They're just SVG lines, and
+// we're not even going to specify their coordinates. (We'll
+// let the force layout take care of that.) Without any
+// coordinates, the lines won't even be visible, but the
+// markup will be sitting inside the SVG container ready
+// and waiting for the force layout.
+var link = svg.selectAll('.link').data(links).enter()
+    .append('line').attr('class', 'link');
+
+// Now it's the nodes turn. Each node is drawn as a circle.
+var node = svg.selectAll('.node').data(nodes).enter()
+    .append('circle').attr('class', 'node').call(force.drag);
+
+// On top of each node, we draw its id.
+var node_id = svg.append("g").selectAll("text").data(nodes).enter()
+    .append("text")
+    .attr("x", "-.31em").attr("y", ".31em")
+    .text(function(d) { return d.id; });
+
+// On top of each node, we draw its id.
+var link_id = svg.append("g").selectAll("text").data(links).enter()
+    .append("text")
+    .attr("x", "-.31em").attr("y", ".31em")
+    .text(function(d) { return d.id; });
+
+// We're about to tell the force layout to start its
+// calculations. We do, however, want to know when those
+// calculations are complete, so before we kick things off
+// we'll define a function that we want the layout to call
+// once the calculations are done.
+force.on('tick', function() {
+    // When this function executes, the force layout
+    // calculations have concluded. The layout will
+    // have set various properties in our nodes and
+    // links objects that we can use to position them
+    // within the SVG container.
+
+    // First let's reposition the nodes. As the force
+    // layout runs it updates the `x` and `y` properties
+    // that define where the node should be centered.
+    // To move the node, we set the appropriate SVG
+    // attributes to their new values. Also give the
+    // nodes a non-zero radius so they're visible.
+    node.attr('r', w/20)
+        .attr('cx', function(d) { return d.x; })
+        .attr('cy', function(d) { return d.y; });
+
+    // We also need to update positions of the links.
+    // For those elements, the force layout sets the
+    // `source` and `target` properties, specifying
+    // `x` and `y` values in each case.
+    link.attr('x1', function(d) { return d.source.x; })
+        .attr('y1', function(d) { return d.source.y; })
+        .attr('x2', function(d) { return d.target.x; })
+        .attr('y2', function(d) { return d.target.y; });
+
+    // translate origin to node center
+    node_id.attr("transform", function(d) {
+      return "translate(" + d.x + "," + d.y + ")";
+    });
+
+    // translate origin to link center
+    link_id.attr("transform", function(d) {
+      var x1=d.source.x, y1=d.source.y;
+      var x2=d.target.x, y2=d.target.y;
+      return "translate(" + (x1+x2)/2 + "," + (y1+y2)/2 + ")";
+    });
+});
+
+// Okay, everything is set up now so it's time to turn
+// things over to the force layout. Here we go.
+force.charge(-900).start();
+
+// By the time you've read this far in the code, the force
+// layout has probably finished its work.
+</script></body></html>

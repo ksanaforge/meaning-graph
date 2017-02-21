@@ -1,0 +1,74 @@
+<!-- c:\2016\meaning-graph\examples\03\index.html -->
+<html><head><meta charset='utf-8'><title>JSON data Force Layout</title><style>
+   .link{fill:none; stroke:#b00; stroke-width:1px}
+   .base{fill:#b00; stroke:#b00; stroke-width:1px}
+   .node{fill:#ddd; stroke:#00f; stroke-width:1px}
+   .text{font:10px sans-serif;
+         text-shadow:2px 2px 0 #fdd, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff}
+</style></head><body><script src='..\..\d3.min.js'></script><script>
+var w    =500
+  ,	h    =500
+  , force=d3.layout.force()
+		.size([w, h]).linkDistance(80).charge(-600)
+  , graph={"links":
+	  [{"source": "Register"       , "target": "Repair(Simple)" }
+	  ,{"source": "Repair(Simple)" , "target": "TestRepair"     }
+	  ,{"source": "TestRepair"     , "target": "AnalyzeDefect"  }
+	  ,{"source": "AnalyzeDefect"  , "target": "RestartRepair"  }
+	  ,{"source": "RestartRepair"  , "target": "TestRepair"     }
+	  ,{"source": "AnalyzeDefect"  , "target": "Repair(Complex)"}
+	  ,{"source": "Repair(Complex)", "target": "InformUser"     }
+	  ,{"source": "Repair(Complex)", "target": "ArchiveRepair"  }
+	  ]
+	}
+
+// A. links and nodes
+var links=graph.links // extract links from graph
+  , nodes={} // object nodes
+  , n    =0; // number of nodes
+	links.forEach(function(L) {
+	  L.source=nodes[L.source] // reference to node object
+	  || (nodes[L.source]={name:++n+'.'+L.source}); // extract node object
+	  L.target=nodes[L.target] // reference to node object
+	  || (nodes[L.target]={name:++n+'.'+L.target}); // extract node object
+	});
+	nodes=d3.values(nodes); // list nodes
+
+// B. svg
+var body  = d3.select('body')
+  , title = body.append('center').append('h2').text('JSON data Force Layout')
+  , svg   = body.append("svg")
+			.attr("width", w).attr("height", h)
+  , L	  = svg.append("g").selectAll("path"  ).data(links).enter()
+  , N	  = svg.append("g").selectAll("circle").data(nodes).enter()
+  , link  = L.append("line"  ).attr("class", "link")
+  , base  = L.append("circle").attr("class", "base")
+			.attr("r", 4)
+  , node  = N.append("circle").attr("class", "node")
+			.attr("r", 35).call(force.drag)
+  , text  = N.append("text"  ).attr("class", "text")
+			.attr("x", -30).attr("y", ".31em")
+			.text(function(d) { return d.name; });
+
+// C. force layout
+	force.nodes(nodes).links(links).start()
+			.on("tick", function() {
+				link.attr("x1", function(d) { return d.source.x; })
+				    .attr("y1", function(d) { return d.source.y; })
+				    .attr("x2", function(d) { return d.target.x; })
+				    .attr("y2", function(d) { return d.target.y; });
+				base.attr("transform", function(d) {
+				  var x1=d.source.x, y1=d.source.y;
+				  var x2=d.target.x, y2=d.target.y;
+				  var dx=x2-x1, dy=y2-y1, r=Math.sqrt(dx*dx+dy*dy);
+				  var x=x1+35*dx/r, y=y1+35*dy/r;
+				  return "translate(" + x + "," + y + ")";
+				});
+				node.attr("transform", function(d) {
+				  return "translate(" + d.x + "," + d.y + ")";
+				});
+				text.attr("transform", function(d) {
+				  return "translate(" + d.x + "," + d.y + ")";
+				});
+			});
+</script></body></html>

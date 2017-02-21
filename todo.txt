@@ -16,7 +16,7 @@ select a node,
 
 click to select a relation
 
-http://bl.ocks.org/rkirsling/5001347
+http://bl.ocks.org/rkirsling/5001347 Directed Graph Editor
 
 drag two node to create relation
 
@@ -24,7 +24,7 @@ relation
   cause effect (arrow)
 
   part and whole (hull)  hull color has same border as as whole node color, invisible line
-http://bl.ocks.org/donaldh/2920551
+http://bl.ocks.org/donaldh/2920551 force-multi-foci with convex hulls
 
   associate (weak force, dash line)
 
@@ -32,16 +32,16 @@ http://bl.ocks.org/donaldh/2920551
 
 
   expand collaspsable
-  http://bl.ocks.org/GerHobbelt/3071239
+  http://bl.ocks.org/GerHobbelt/3071239 click to group/bundle nodes
 
   curvy link 
-  http://www.d3noob.org/2013/03/d3js-force-directed-graph-example-basic.html
+  http://www.d3noob.org/2013/03/d3js-force-directed-graph-example-basic.html add the curvy lines
  
  understsanding d3.js force layout
- http://jsdatav.is/visuals.html?id=11550728
+ http://jsdatav.is/visuals.html?id=11550728 The Simplest Possible Graph
 
 AN A TO Z OF EXTRA FEATURES FOR THE D3 FORCE LAYOUT
- http://www.coppelia.io/2014/07/an-a-to-z-of-extra-features-for-the-d3-force-layout/
+ http://www.coppelia.io/2014/07/an-a-to-z-of-extra-features-for-the-d3-force-layout/ A TO Z OF EXTRA FEATURES
 
 More Networks in the Humanities or Did books have DNA?
  https://dhs.stanford.edu/visualization/more-networks/
