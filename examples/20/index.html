@@ -1,18 +1,46 @@
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>----</title>
-    <link rel="stylesheet" href="app.css">
-  </head>
-  <body>
-      <button onclick="load()">load</button>
-    <button >Delete selected node</button>
-    <br/> 
-    <textarea rows="15" style="width:100%" id="json"></textarea>
+	<head><meta charset="utf-8"><title>Directed Graph Editor</title>
+	    <link rel="stylesheet" href="dge.css">
+		<script src="../../d3.min.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/3.6.10/firebase.js"></script>
+		<script> // Initialize Firebase
+//			debugger
+			var config = {
+				apiKey: "AIzaSyBAhLncjzOM2G2pT4yF2KKe_roP5mJQsRw",
+				authDomain: "mjeforth.firebaseapp.com",
+				databaseURL: "https://mjeforth.firebaseio.com",
+				storageBucket: "mjeforth.appspot.com",
+				messagingSenderId: "832824227642"
+			};
+			firebase.initializeApp(config);
+		</script>
+	</head>
+	<body>
+		<table width=100% border=1><tr width=100%><td id=100%>
+		<center><b>Directed Graph Editor</b><br>
+		<textarea rows=9 cols=100>
+[1] mouse click a node -- to select/unselect that node;
+[2] mouse click a link -- to select/unselect that link;
+[3] mouse click elsewhere -- to add a new node there;
+[4] mouse click a node then move to another node -- to add a new link;
+[5] key control and mouse click a node then move -- to drag that node;
+[6] key backspace or del -- to delete the selected node or link;
+[7] key r -- to bold or unbold the circle of the selected node;
+[8] key r -- to add or del right arrow to link target (larger id);
+[9] key l -- to add or del left arrow to link source (smaller id);</textarea>
+&nbsp
+</td></tr></table></center>
 
-  </body>
-  <script src="..\..\d3.min.js">
-  </script>
-  <script src="app.js">
-  </script>
+		<table width=100% border=1><tr width=100%><td id="left" width=50%>
+			<svg></svg>
+		</td><td id="right"><center>
+			<textarea id="code" onchange="onChangeCode()"
+				rows=30 cols=56></textarea><br>
+			<button onclick="loadGraph()">load from</button>
+			<input id="codeId" size=30 onchange="onChangeCodeId()"
+				value="workingGraph"></input>
+			<button onclick="saveGraph()">save graph</button></center>
+		</td></tr></table>
+		<script src="dge.js"></script>
+	</body>
 </html>

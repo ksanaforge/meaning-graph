@@ -1,141 +1,126 @@
-/* app.js  (Directed Graph Editor) http://bl.ocks.org/rkirsling/5001347 */
+// set up SVG for D3
+var width  = 960,
+    height = 500,
+    colors = d3.scale.category10();
+
+var svg = d3.select('body')
+  .append('svg')
+  .attr('oncontextmenu', 'return false;')
+  .attr('width', width)
+  .attr('height', height);
 
 // set up initial nodes and links
-//  - links are set from source 'left' to target 'right'.
-//  - nodes are known by 'id'.
-//  - reflexive are indicated on the node as a bold black circle.
-var force = d3.layout.force().size([width, height]).linkDistance(150).charge(-500),
-	links = [ { source: 1, target: 2, left: false, right: true }
-    		, { source: 2, target: 3, left: true , right: true }
-            ],
-	nodes = [ { id: 1, reflexive: false, color:'orange' }
-        	, { id: 2, reflexive: true , color:'pink'   }
-    		, { id: 3, reflexive: false, color:'green'  }
-            ],
-    lastNodeId = 3,
-	getNodeById = {},
+//  - nodes are known by 'id', not by index in array.
+//  - reflexive edges are indicated on the node (as a bold black circle).
+//  - links are always source < target; edge directions are set by 'left' and 'right'.
+var nodes = [
+    {id: 0, reflexive: false},
+    {id: 1, reflexive: true },
+    {id: 2, reflexive: false}
+  ],
+  lastNodeId = 2,
+  links = [
+    {source: nodes[0], target: nodes[1], left: false, right: true },
+    {source: nodes[1], target: nodes[2], left: false, right: true }
+  ];
 
-// set up SVG for D3
-	width  = 460, height = 280, colors = d3.scale.category10(),
-	svg = d3.select('body').append('svg')
-	.attr('width', width).attr('height', height).attr('oncontextmenu', 'return false;');
+// init D3 force layout
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links(links)
+    .size([width, height])
+    .linkDistance(150)
+    .charge(-500)
+    .on('tick', tick)
+
 // define arrow markers for graph links
 svg.append('svg:defs').append('svg:marker')
-     .attr('id', 'end-arrow')
-     .attr('viewBox', '0 -5 10 10')
-     .attr('refX', 6)
-     .attr('markerWidth', 3)
-     .attr('markerHeight', 3)
-     .attr('orient', 'auto')
-   .append('svg:path')
-     .attr('d', 'M0,-5L10,0L0,5')
-     .attr('fill', '#008');
+    .attr('id', 'end-arrow')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 6)
+    .attr('markerWidth', 3)
+    .attr('markerHeight', 3)
+    .attr('orient', 'auto')
+  .append('svg:path')
+    .attr('d', 'M0,-5L10,0L0,5')
+    .attr('fill', '#000');
+
 svg.append('svg:defs').append('svg:marker')
-     .attr('id', 'start-arrow')
-     .attr('viewBox', '0 -5 10 10')
-     .attr('refX', 6)
-     .attr('markerWidth', 3)
-     .attr('markerHeight', 3)
-     .attr('orient', 'auto')
-   .append('svg:path')
-     .attr('d', 'M10,-5L0,0L10,5')
-     .attr('fill', '#800');
+    .attr('id', 'start-arrow')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 4)
+    .attr('markerWidth', 3)
+    .attr('markerHeight', 3)
+    .attr('orient', 'auto')
+  .append('svg:path')
+    .attr('d', 'M10,-5L0,0L10,5')
+    .attr('fill', '#000');
+
 // line displayed when dragging new nodes
 var drag_line = svg.append('svg:path')
-     .attr('class', 'link dragline hidden')
-     .attr('d', 'M0,0L0,0');
+  .attr('class', 'link dragline hidden')
+  .attr('d', 'M0,0L0,0');
+
 // handles to link and node element groups
 var path = svg.append('svg:g').selectAll('path'),
     circle = svg.append('svg:g').selectAll('g');
-// debugger; ///// sam 20170216
+
 // mouse event vars
-var  selected_node = null,
-     selected_link = null,
+var selected_node = null,
+    selected_link = null,
     mousedown_link = null,
     mousedown_node = null,
-      mouseup_node = null;
+    mouseup_node = null;
+
 function resetMouseVars() {
-    mousedown_link = null,
-    mousedown_node = null,
-      mouseup_node = null;
+  mousedown_node = null;
+  mouseup_node = null;
+  mousedown_link = null;
 }
+
 // update force layout (called automatically each iteration)
 function tick() {
   // draw directed edges with proper padding from node centers
   path.attr('d', function(d) {
-  	if(isNaN(d.source.x)){
-  		console.log('x and y undefined',JSON.stringify(d));
-  	}
-    var x1 = d.source.x, y1 = d.source.y,
-    	x2 = d.target.x, y2 = d.target.y,
-    	a = Math.atan2(y2 - y1, x2 - x1),
-        normX = Math.cos(a), normY = Math.sin(a),
-        sourcePadding = d.left  ? 17 : 12,
+    var deltaX = d.target.x - d.source.x,
+        deltaY = d.target.y - d.source.y,
+        dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+        normX = deltaX / dist,
+        normY = deltaY / dist,
+        sourcePadding = d.left ? 17 : 12,
         targetPadding = d.right ? 17 : 12,
-        sourceX = x1 + (sourcePadding * normX),
-        sourceY = y1 + (sourcePadding * normY),
-        targetX = x2 - (targetPadding * normX),
-        targetY = y2 - (targetPadding * normY);
+        sourceX = d.source.x + (sourcePadding * normX),
+        sourceY = d.source.y + (sourcePadding * normY),
+        targetX = d.target.x - (targetPadding * normX),
+        targetY = d.target.y - (targetPadding * normY);
     return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
   });
+
   circle.attr('transform', function(d) {
     return 'translate(' + d.x + ',' + d.y + ')';
   });
 }
-function myColor(d){                   ///// sam 20170216
-  return d.color?d.color:colors(d.id); ///// sam 20170216
-}                                      ///// sam 20170216
+
 // update graph (called when needed)
 function restart() {
-// init D3 force layout
-	getNodeById = {};
-	nodes.forEach(function(node){
-		getNodeById[node.id]=node;
-	});
-	links.forEach(function(link){
-		var source=link.source, target=link.target;
-		if (! source.id) {
-			link.source=( getNodeById[source] || (getNodeById[source]={ id: source, color: 'gray' }) );
-		}
-		if (! target.id) {
-			link.target=( getNodeById[target] || (getNodeById[target]={ id: target, color: 'gray' }) );
-		}
-	});
-	// show the graph as a json
-	json.value='{"nodes":\n ['+
-	    nodes.map(function(N){
-	      return '{"id":'+N.id+',"reflexive":'+N.reflexive+',"color":"'+myColor(N)+'"}'
-	    }).join('\n ,')+'\n ],\n "links":\n ['+
-	    links.map(function(L){
-	      return '{"source":'+L.source.id+',"target":'+
-	        L.target.id+',"left":'+L.left+',"right":'+L.right+'}'
-	    }).join('\n ,')+'\n ]\n}';
-	force.nodes(nodes).links(links).on('tick', tick);
-  // path (link) group ----------------------------------------------------
+  // path (link) group
   path = path.data(links);
-  // debugger; ///// sam 20170216
+
   // update existing links
-  path.classed('selected', function(d) { 
-  	  return d === selected_link; })
-    .style('marker-start', function(d) {
-      return d.left  ? 'url(#start-arrow)' : ''; })
-    .style('marker-end'  , function(d) { 
-      return d.right ? 'url(  #end-arrow)' : ''; });
+  path.classed('selected', function(d) { return d === selected_link; })
+    .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
+    .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; });
+
+
   // add new links
-  
   path.enter().append('svg:path')
     .attr('class', 'link')
-    .classed(  'selected', function(d) { 
-      return d === selected_link; })
-    .style('marker-start', function(d) { 
-      return d.left  ? 'url(#start-arrow)' : ''; })
-    .style('marker-end'  , function(d) { 
-      return d.right ? 'url(#end-arrow  )' : ''; })
-    .on('mouseup', function(d) {
-      	  console.log('mouseup:',JSON.stringify(d));
-      })
+    .classed('selected', function(d) { return d === selected_link; })
+    .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
+    .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
     .on('mousedown', function(d) {
       if(d3.event.ctrlKey) return;
+
       // select link
       mousedown_link = d;
       if(mousedown_link === selected_link) selected_link = null;
@@ -143,22 +128,19 @@ function restart() {
       selected_node = null;
       restart();
     });
+
   // remove old links
   path.exit().remove();
-  // circle (node) group ----------------------------------------------------
+
+
+  // circle (node) group
   // NB: the function arg is crucial here! nodes are known by id, not by index!
-  circle = circle.data(nodes);
+  circle = circle.data(nodes, function(d) { return d.id; });
 
   // update existing nodes (reflexive & selected visual states)
-  //console.log( '0. circle:\n'+JSON.stringify(circle) );
   circle.selectAll('circle')
-  .style('fill', function(d) {
-      return nodes[d.index].color;
-  })
-  .classed('reflexive', function(d) { return d.reflexive; })
-  .classed('color', function(d) {
-      return myColor(d);
-  });
+    .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); })
+    .classed('reflexive', function(d) { return d.reflexive; });
 
   // add new nodes
   var g = circle.enter().append('svg:g');
@@ -166,12 +148,8 @@ function restart() {
   g.append('svg:circle')
     .attr('class', 'node')
     .attr('r', 12)
-    .style('fill', function(d) {
-       return d === selected_node ? d3.rgb(myColor(d)).brighter().toString() : myColor(d); 
-     }) ///// sam 20170216
-    .style('stroke', function(d) {
-       return d3.rgb(myColor(d)).darker().toString(); 
-     }) ///// sam 20170216
+    .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); })
+    .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
     .classed('reflexive', function(d) { return d.reflexive; })
     .on('mouseover', function(d) {
       if(!mousedown_node || d === mousedown_node) return;
@@ -253,20 +231,12 @@ function restart() {
       .attr('y', 4)
       .attr('class', 'id')
       .text(function(d) { return d.id; });
+
   // remove old nodes
   circle.exit().remove();
-  
-  // set the graph in motion
-//setTimeout(function(){
-  	force.start();
-//},10);
-}
 
-function load() {
-  var J=JSON.parse(json.value);
-  nodes=J.nodes, links=J.links;
-  svg.classed('active', true);
-  setTimeout(restart,0);
+  // set the graph in motion
+  force.start();
 }
 
 function mousedown() {
@@ -279,7 +249,8 @@ function mousedown() {
   if(d3.event.ctrlKey || mousedown_node || mousedown_link) return;
 
   // insert new node at point
-  var point = d3.mouse(this), node = {id: ++lastNodeId, reflexive: false, color: 'gray'};
+  var point = d3.mouse(this),
+      node = {id: ++lastNodeId, reflexive: false};
   node.x = point[0];
   node.y = point[1];
   nodes.push(node);
@@ -393,9 +364,9 @@ function keyup() {
 
 // app starts here
 svg.on('mousedown', mousedown)
-   .on('mousemove', mousemove)
-   .on('mouseup'  , mouseup  );
-//d3.select("svg")
-//  .on('keydown', keydown)
-//  .on('keyup'  , keyup  );
+  .on('mousemove', mousemove)
+  .on('mouseup', mouseup);
+d3.select(window)
+  .on('keydown', keydown)
+  .on('keyup', keyup);
 restart();

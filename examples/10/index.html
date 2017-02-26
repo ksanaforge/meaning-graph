@@ -1,89 +1,51 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
-<style>
-body {
-    overflow: hidden;
-    margin: 0;
-}
-
-text {
-    font-family: sans-serif;
-    pointer-events: none;
-}
-</style>
-
-<body>
-    <script src="../../d3.min.js"></script>
-    <script>
-    var w = window.innerWidth;
-    var h = window.innerHeight;
-
-    var keyc = true,
-        keys = true,
-        keyt = true,
-        keyr = true,
-        keyx = true,
-        keyd = true,
-        keyl = true,
-        keym = true,
-        keyh = true,
-        key1 = true,
-        key2 = true,
-        key3 = true,
-        key0 = true
-
-    var focus_node = null,
-        highlight_node = null;
-
-    var text_center = false;
-    var outline = false;
-
-    var min_score = 0;
-    var max_score = 1;
-
-    var color = d3.scale.linear()
-        .domain([min_score, (min_score + max_score) / 2, max_score])
-        .range(["lime", "yellow", "red"]);
-
-    var highlight_color = "blue";
-    var highlight_trans = 0.1;
-
-    var size = d3.scale.pow().exponent(1)
-        .domain([1, 100])
-        .range([8, 24]);
-
-    var force = d3.layout.force()
-        .linkDistance(60)
-        .charge(-300)
-        .size([w, h]);
-
-    var default_node_color = "#ccc";
-    //var default_node_color = "rgb(3,190,100)";
-    var default_link_color = "#888";
-    var nominal_base_node_size = 8;
-    var nominal_text_size = 10;
-    var max_text_size = 24;
-    var nominal_stroke = 1.5;
-    var max_stroke = 4.5;
-    var max_base_node_size = 36;
-    var min_zoom = 0.1;
-    var max_zoom = 7;
-    var svg = d3.select("body").append("svg");
-    var zoom = d3.behavior.zoom().scaleExtent([min_zoom, max_zoom])
-    var g = svg.append("g");
-    svg.style("cursor", "move");
-
+<!-- c:\2016\meaning-graph\examples\03\index.html -->
+<html><head><meta charset='utf-8'><title>Possible Force Layout Types</title><style>
+	body{overflow: hidden;margin: 0;}
+	text{font-family: sans-serif;pointer-events: none;}
+</style></head><body><script src="../../d3.min.js"></script><script>
+	var w = window.innerWidth, h = window.innerHeight,
+        force = d3.layout.force()
+			.linkDistance(80)
+			.charge(-300)
+			.size([w, h]),
+        highlight_color = "#66f",
+        default_link_color = "#caa",
+        default_node_color = "#aac",
+        highlight_trans = 0.5,
+        min_score = 0,
+        max_score = 1,
+        color = d3.scale.linear()
+			.domain([min_score, (min_score + max_score) / 2, max_score])
+			.range(["#8f8", "yellow", "#f88"]),
+        size = d3.scale.pow().exponent(1)
+			.domain([1, 100])
+			.range([18, 34]),
+        nominal_base_node_size = 18,
+        nominal_text_size = 8,
+        nominal_stroke = 1,
+        min_zoom = 0.5, max_zoom = 5,
+        zoom = d3.behavior.zoom().scaleExtent([min_zoom, max_zoom]),
+        max_text_size = 60,
+        max_stroke = 6,
+        max_base_node_size = 120,
+		focus_node = null,
+        highlight_node = null,
+        text_center = true,
+        outline = false,
+		key1 = true, key2 = true, key3 = true, key0 = true,
+		keyr = true, keyt = true,
+		keys = true, keyd = true, keyh = true,
+		keyx = true, keyc = true, keym = true,
+        svg = d3.select("body").append("svg").style("cursor", "move"),
+        g = svg.append("g");
     d3.json("graph.json", function(error, graph) {
-
+    	var nodes = graph.nodes, links = graph.links;
+        force.nodes(nodes).links(links).start();
         var linkedByIndex = {};
-        graph.links.forEach(function(d) {
-            linkedByIndex[d.source + "," + d.target] = true;
-        });
-
+        links.forEach(function(d){linkedByIndex[d.source + "," + d.target]=true;});
         function isConnected(a, b) {
             return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
         }
-
         function hasConnections(a) {
             for (var property in linkedByIndex) {
                 s = property.split(",");
@@ -91,73 +53,41 @@ text {
             }
             return false;
         }
-
-        force
-            .nodes(graph.nodes)
-            .links(graph.links)
-            .start();
-
-        var link = g.selectAll(".link")
-            .data(graph.links)
-            .enter().append("line")
-            .attr("class", "link")
-            .style("stroke-width", nominal_stroke)
-            .style("stroke", function(d) {
-                if (isNumber(d.score) && d.score >= 0) return color(d.score);
-                else return default_link_color;
-            })
-
-
-        var node = g.selectAll(".node")
-            .data(graph.nodes)
-            .enter().append("g")
-            .attr("class", "node")
-
-        .call(force.drag)
-
-
-        node.on("dblclick.zoom", function(d) {
-            d3.event.stopPropagation();
-            var dcx = (window.innerWidth / 2 - d.x * zoom.scale());
-            var dcy = (window.innerHeight / 2 - d.y * zoom.scale());
-            zoom.translate([dcx, dcy]);
-            g.attr("transform", "translate(" + dcx + "," + dcy + ")scale(" + zoom.scale() + ")");
-
-
-        });
-
-
-
-
-        var tocolor = "fill";
-        var towhite = "stroke";
-        if (outline) {
-            tocolor = "stroke"
-            towhite = "fill"
-        }
-
-
-
-        var circle = node.append("path")
-
-
-        .attr("d", d3.svg.symbol()
-            .size(function(d) {
-                return Math.PI * Math.pow(size(d.size) || nominal_base_node_size, 2);
-            })
-            .type(function(d) {
-                return d.type;
-            }))
-
-        .style(tocolor, function(d) {
-                if (isNumber(d.score) && d.score >= 0) return color(d.score);
-                else return default_node_color;
-            })
-            //.attr("r", function(d) { return size(d.size)||nominal_base_node_size; })
-            .style("stroke-width", nominal_stroke)
-            .style(towhite, "white");
-
-
+        var tocolor = outline ? "stroke" : "fill"  ,
+        	towhite = outline ? "fill"   : "stroke",
+        	link = g.selectAll().data(links).enter().append("line")
+	            .attr("class", "link")
+	            .style("stroke-width", nominal_stroke)
+	            .style("stroke", function(d) {
+	                return isNumber(d.score)? color(d.score) : default_link_color;
+            	}),
+			node = g.selectAll().data(nodes).enter().append("g")
+	            .attr("class", "node").call(force.drag),
+			circle = node.append("path")
+		        .attr("d", d3.svg.symbol()
+		            .size(function(d) {
+		                return Math.PI * Math.pow(size(d.size)
+		                	|| nominal_base_node_size, 2);
+		            })
+		            .type(function(d) {
+		                return d.type;
+		            })
+		        )
+		        .style(tocolor, function(d) {
+	                var s = d.score;
+	                return (isNumber(s) && s >= 0)?color(s):default_node_color;
+	            })
+              //.attr("r", function(d){return size(d.size)||nominal_base_node_size;})
+	            .style("stroke-width", nominal_stroke)
+	            .style(towhite, "white");
+	        node.on("dblclick.zoom", function(d) {
+	            d3.event.stopPropagation();
+	            var s = zoom.scale();
+	            var dcx = w/2 - d.x * s;
+	            var dcy = h/2 - d.y * s;
+	            zoom.translate([dcx, dcy]);
+	            g.attr("transform", "translate(" + dcx + "," + dcy + ")scale(" + zoom.scale() + ")");
+	        });
         var text = g.selectAll(".text")
             .data(graph.nodes)
             .enter().append("text")
