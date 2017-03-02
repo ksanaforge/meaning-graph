@@ -17,17 +17,20 @@
 	</head>
 	<body>
 		<table width=100% border=1><tr width=100%><td id=100%>
-		<center><b>Directed Graph Editor</b><br>
-		<textarea rows=9 cols=100>
-[1] mouse click a node -- to select/unselect that node;
-[2] mouse click a link -- to select/unselect that link;
-[3] mouse click elsewhere -- to add a new node there;
-[4] mouse click a node then move to another node -- to add a new link;
-[5] key control and mouse click a node then move -- to drag that node;
-[6] key backspace or del -- to delete the selected node or link;
-[7] key r -- to bold or unbold the circle of the selected node;
-[8] key r -- to add or del right arrow to link target (larger id);
-[9] key l -- to add or del left arrow to link source (smaller id);</textarea>
+		<center><b>Directed Graph Editor 方向性結構圖的互動式編輯</b><br>
+		<textarea rows=13 cols=100>
+[01] mouse click a node -- to select/unselect that node; 滑鼠點圓 (圓變亮或暗)
+[02] mouse click a link -- to select/unselect that link; 滑鼠點線 (線變虛或實)
+[03] mouse click elsewhere -- to add a new node there; 滑鼠點空白處 會加一個新圓
+[04] mouse click a node then move to another node -- to add a new link; 滑鼠點圓到圓 會加一條新線
+[05] key control and mouse click a node then move -- to drag that node; 按 Ctrl 讓滑鼠可拖拉圓
+[06] key backspace or del -- to delete selected node/link; 按 Backspace/Del 刪除亮圓或虛線
+[07] key R -- to bold/unbold the circle of selected node; 按 R 使亮圓的圈變粗或細
+[08] key R -- to add/del right arrow of selected link to target (larger id); 按 R 使虛線會指向大數圓
+[09] key L -- to add/del left arrow of selected link to source (smaller id); 按 L 使虛線會指向小數圓
+[10] key B -- to asure having arrows of selected link to both nodes; 按 B 使虛線會指向兩個圓
+[11] button Load -- to load graph from a cload of given title; 按 Load 鈕 從指定標題的雲 載入 結構圖
+[12] button Save -- to save graph to a cload of given title; 按 Save 鈕 將結構圖 傳到 指定標題的雲</textarea>
 &nbsp
 </td></tr></table></center>
 
@@ -35,11 +38,11 @@
 			<svg></svg>
 		</td><td id="right"><center>
 			<textarea id="code" onchange="onChangeCode()"
-				rows=30 cols=56></textarea><br>
-			<button onclick="loadGraph()">load from</button>
+				rows=30 cols=64></textarea><br>
+			<button onclick="loadGraph()">Load</button>
 			<input id="codeId" size=30 onchange="onChangeCodeId()"
 				value="workingGraph"></input>
-			<button onclick="saveGraph()">save graph</button></center>
+			<button onclick="saveGraph()">Save</button></center>
 		</td></tr></table>
 		<script src="dge.js"></script>
 	</body>
