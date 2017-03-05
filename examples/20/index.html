@@ -1,10 +1,10 @@
 <html>
 	<head><meta charset="utf-8"><title>Directed Graph Editor</title>
 	    <link rel="stylesheet" href="dge.css">
-		<script src="../../d3.min.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/3.6.10/firebase.js"></script>
+		<script src="./d3.min.js"></script>
+		<script src="./firebase3.6.10.js"></script>
 		<script> // Initialize Firebase
-//			debugger
+		//	debugger
 			var config = {
 				apiKey: "AIzaSyBAhLncjzOM2G2pT4yF2KKe_roP5mJQsRw",
 				authDomain: "mjeforth.firebaseapp.com",
@@ -19,16 +19,16 @@
 		<table width=100% border=1><tr width=100%><td id=100%>
 		<center><b>Directed Graph Editor 方向性結構圖的互動式編輯</b><br>
 		<textarea rows=13 cols=100>
-[01] mouse click a node -- to select/unselect that node; 滑鼠點圓 (圓變亮或暗)
-[02] mouse click a link -- to select/unselect that link; 滑鼠點線 (線變虛或實)
+[01] mouse click a node -- to select/unselect that node; 滑鼠點圓 (圓會變[亮]或暗)
+[02] mouse click a link -- to select/unselect that link; 滑鼠點線 (線會變[虛]或實)
 [03] mouse click elsewhere -- to add a new node there; 滑鼠點空白處 會加一個新圓
 [04] mouse click a node then move to another node -- to add a new link; 滑鼠點圓到圓 會加一條新線
-[05] key control and mouse click a node then move -- to drag that node; 按 Ctrl 讓滑鼠可拖拉圓
-[06] key backspace or del -- to delete selected node/link; 按 Backspace/Del 刪除亮圓或虛線
-[07] key R -- to bold/unbold the circle of selected node; 按 R 使亮圓的圈變粗或細
-[08] key R -- to add/del right arrow of selected link to target (larger id); 按 R 使虛線會指向大數圓
-[09] key L -- to add/del left arrow of selected link to source (smaller id); 按 L 使虛線會指向小數圓
-[10] key B -- to asure having arrows of selected link to both nodes; 按 B 使虛線會指向兩個圓
+[05] key control and mouse click a node then move -- to drag that node; 按 Ctrl 時滑鼠可拖拉圓
+[06] key backspace or del -- to delete selected node/link; 按 Backspace/Del 刪除[亮]圓或[虛]線
+[07] key R -- to bold/unbold the circle of selected node; 按 R 使[亮]圓的圈變[粗]或細
+[08] key R -- to add right arrow on selected link to target (larger id); 按 R 使[虛]線指向大數圓
+[09] key L -- to add left arrow on selected link to source (smaller id); 按 L 使[虛]線指向小數圓
+[10] key B -- to add arrows on selected link to both nodes; 按 B 使[虛]線指向兩個圓
 [11] button Load -- to load graph from a cload of given title; 按 Load 鈕 從指定標題的雲 載入 結構圖
 [12] button Save -- to save graph to a cload of given title; 按 Save 鈕 將結構圖 傳到 指定標題的雲</textarea>
 &nbsp
@@ -38,10 +38,11 @@
 			<svg></svg>
 		</td><td id="right"><center>
 			<textarea id="code" onchange="onChangeCode()"
-				rows=30 cols=64></textarea><br>
+				rows=30 cols=64 onkeyup="onChangeCode()"></textarea><br>
+			<button readonly>charge</button>
+			<input id="charge" size=3 onchange="onChangeCharge()"></input>
 			<button onclick="loadGraph()">Load</button>
-			<input id="codeId" size=30 onchange="onChangeCodeId()"
-				value="workingGraph"></input>
+			<input id="codeId" size=12 onchange="onChangeCodeId()"></input>
 			<button onclick="saveGraph()">Save</button></center>
 		</td></tr></table>
 		<script src="dge.js"></script>

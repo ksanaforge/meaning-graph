@@ -1,3 +1,4 @@
+// debugger
 // set up SVG for D3
 var width = left.clientWidth, height = 500, colors = d3.scale.category10(),
 	svg = d3.select('svg').attr('oncontextmenu', 'return false;')
@@ -11,7 +12,7 @@ var width = left.clientWidth, height = 500, colors = d3.scale.category10(),
 	' [{"id":0,"reflexive":false,"color":"#1f77b4"}\n'+
 	' ,{"id":1,"reflexive":true,"color":"#ff7f0e"}\n'+
 	' ,{"id":2,"reflexive":false,"color":"#2ca02c"}\n'+
-	' ], "lastNodeId": 2,\n'+
+	' ], "charge": -99,\n'+
 	' "links":\n'+
 	' [{"source":0,"target":1,"left":false,"right":true}\n'+
 	' ,{"source":1,"target":2,"left":false,"right":true}\n'+
@@ -20,9 +21,10 @@ var width = left.clientWidth, height = 500, colors = d3.scale.category10(),
 	nodes = graph.nodes,
 	lastNodeId = graph.lastNodeId,
 	links = graph.links,
+	c = graph.charge || localStorage.charge || -99,
 // init D3 force layout
-	force = d3.layout.force() .nodes(nodes).links(links)
-    .size([width, height]).linkDistance(150).charge(-800).on('tick', tick),
+	force = d3.layout.force().charge(c).nodes(nodes).links(links)
+    .size([width, height]).linkDistance(100).on('tick', tick),
 // line displayed when dragging new nodes
 	drag_line = svg.append('svg:path')
 	.attr('class', 'link dragline hidden').attr('d', 'M0,0L0,0'),
@@ -32,6 +34,8 @@ var width = left.clientWidth, height = 500, colors = d3.scale.category10(),
 // mouse event vars
 	selected_node = selected_link =
 	mousedown_link = mousedown_node = mouseup_node = null;
+if(charge.value != c)
+	charge.value = c;
 if(codeId.value != codeid)
 	codeId.value = codeid;
 // define arrow markers for graph links
@@ -69,7 +73,7 @@ function tick() {
 }
 // update graph (called when needed)
 function loadGraph(){
-	debugger
+//	debugger
     firebase.database().ref('sam/'+codeId.value)
     .on('value',function(snapshot){
 		firebase.database().ref('sam/'+codeId.value).off('value');
@@ -78,42 +82,72 @@ function loadGraph(){
     		return;
     	}
 	var sv=snapshot.val() || '{"code":{}}';
+		if(!sv.code){
+			alert(codeId.value+' undefined');
+			return;
+		}
 		graph = JSON.parse(sv.code);
 		nodes = graph.nodes || [];
-		lastNodeId = graph.lastNodeId || -1;
 		links = graph.links || [];
-		var getNodeById = {};
-		nodes.forEach(function(N){
-			getNodeById[N.id]=N;
-		});
-		links.forEach(function(L){
-			L.source = getNodeById[L.source];
-			L.target = getNodeById[L.target];
-		});
-		force.nodes(nodes).links(links);
+		c = graph.charge || -299;
+		force.charge(c).nodes(nodes).links(links);
 		restart();
     }.bind(this));
 }
 function saveGraph(){
     firebase.database().ref('sam/'+codeId.value)
-    .set({ username: 'sam', code:code.value });
+    .set({ username: 'sam', code:code.value, charge:c });
 }
 function onChangeCode  (){
-	localStorage.code  =code  .value; }
+	localStorage.code  =code  .value; 
+}
 function onChangeCodeId(){
-	localStorage.codeid=codeId.value; }
-function myColor(d){ return d.color?d.color:colors(d.id); } 
+	localStorage.codeid =codeId.value;
+}
+function onChangeCharge(){
+//	if(! svg.classed('active'))
+//		return;
+	localStorage.charge=c=charge.value;
+	force.charge(c);
+	restart();
+}
+function myColor(d){
+	return d.color?d.color:colors(d.id); 
+} 
+function linkId(L){
+	var sid=L.source, tid=L.target;
+	if(isNaN(sid)) sid=sid.id;
+	if(isNaN(tid)) tid=tid.id;
+	return sid*100+tid
+}
 function restart() {
+//	debugger
+	svg.classed('active', true);
+	if(charge.value != c){
+//		svg.classed('active', false);
+		charge.value = c;
+//		svg.classed('active', true);
+	}
+	var getNodeById = {};
+	lastNodeId=0;
+	nodes.forEach(function(N){
+		if(lastNodeId<N.id) lastNodeId=N.id;
+		getNodeById[N.id]=N;
+	});
+	links.forEach(function(L){ L.id=linkId(L) });
+	links=links.sort(function(a,b){ return a.id-b.id; });
 	code.value=localStorage.code='{"nodes":\n ['+
 	    nodes.map(function(N){
 	    	return '{"id":'+N.id+',"reflexive":'+(N.reflexive||false)+
 	      		',"color":"'+myColor(N)+'"}'
-	    }).join('\n ,')+'\n ], "lastNodeId": '+lastNodeId+',\n "links":\n ['+
+	    }).join('\n ,')+'\n ], "charge": '+c+',\n "links":\n ['+
 	    links.map(function(L){
 	    	var sid=L.source, tid=L.target;
 	    	if(isNaN(sid)) sid=sid.id;
+	    	else L.source=getNodeById[sid];
 	    	if(isNaN(tid)) tid=tid.id;
-	    	return '{"source":'+sid+',"target":'+tid+
+	    	else L.target=getNodeById[tid];
+	    	return '{"id":'+L.id+',"source":'+sid+',"target":'+tid+
 	      		',"left":'+L.left+',"right":'+L.right+'}'
 	    }).join('\n ,')+'\n ]\n}';
 	// path (link) group
@@ -236,7 +270,7 @@ function restart() {
 }
 function mousedown() {
 	// prevent I-bar on drag
-	//d3.event.preventDefault();
+	// d3.event.preventDefault();
 	// because :active only works in WebKit?
 	svg.classed('active', true);
 	if(d3.event.ctrlKey || mousedown_node || mousedown_link) return;
@@ -274,7 +308,7 @@ function spliceLinksForNode(node) {
 // only respond once per keydown
 var lastKeyDown = -1;
 function keydown() {
-	d3.event.preventDefault();
+//	d3.event.preventDefault();
 	if(lastKeyDown !== -1) return;
 	lastKeyDown = d3.event.keyCode;
 	if(d3.event.keyCode === 17) { // ctrl

@@ -1,0 +1,18 @@
+<html>
+	<head><meta charset="utf-8"><title>Test</title>
+	</head>
+	<body>
+			<input contenteditable="true" id="codeId" size=30 onchange="onChangeCodeId()"
+				onkeyup="onKyUpCodeId()"></input>
+		<script>
+		function onChangeCodeId(){
+			console.log('onChange codeId.value='+codeId.value);
+		//	debugger
+		}
+		function onKyUpCodeId(){
+			console.log('onKyUp codeId.value='+codeId.value);
+		//	debugger
+		}
+		</script>
+	</body>
+</html>
